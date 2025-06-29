@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Search, X, Lightbulb, Settings, Paperclip, Mic, AudioWaveform, FlaskConical } from 'lucide-react';
+import { Search, Lightbulb, Settings, Paperclip, Mic, AudioWaveform, FlaskConical } from 'lucide-react';
 
 interface SearchResult {
   title: string;
@@ -39,10 +39,11 @@ export default function SearchInterface() {
   const handleSearch = async () => {
     if (!query.trim()) return;
 
-    // Capture the initial question if this is the first search
-    if (!initialQuestion) {
-      setInitialQuestion(query);
-    }
+    // Capture the current query before clearing
+    const searchQuery = query;
+    
+    // For follow-up questions, update the initial question to the new question
+    setInitialQuestion(searchQuery);
 
     // Set answer page state to maintain layout during loading
     setIsAnswerPage(true);
@@ -53,8 +54,7 @@ export default function SearchInterface() {
     setAiResponse('');
     setRelatedQuestions([]);
     
-    // Clear the query after capturing it for the initial question
-    const searchQuery = query;
+    // Clear the query after capturing it
     setQuery('');
 
     try {
