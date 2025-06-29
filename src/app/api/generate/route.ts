@@ -51,7 +51,10 @@ Please provide a well-structured response with proper citations. Only use inform
       temperature: 0.7,
     });
 
-    const response = completion.choices[0]?.message?.content || 'No response generated';
+    let response = completion.choices[0]?.message?.content || 'No response generated';
+    
+    // Remove "References:" section and everything after it since sources are in separate tab
+    response = response.replace(/\n\s*References?:[\s\S]*$/i, '').trim();
 
     // Generate related questions
     const relatedQuestionsPrompt = `Based on the user's original question "${query}", generate 5 related questions that someone might want to ask next. 
