@@ -47,6 +47,10 @@ export default function SearchInterface() {
     setSearchResults([]);
     setAiResponse('');
     setRelatedQuestions([]);
+    
+    // Clear the query after capturing it for the initial question
+    const searchQuery = query;
+    setQuery('');
 
     try {
       // Get search results
@@ -55,7 +59,7 @@ export default function SearchInterface() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query: searchQuery }),
       });
 
       if (!searchResponse.ok) {
@@ -71,7 +75,7 @@ export default function SearchInterface() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ query, searchResults: searchData.results }),
+        body: JSON.stringify({ query: searchQuery, searchResults: searchData.results }),
       });
 
       if (!generateResponse.ok) {
@@ -357,8 +361,24 @@ export default function SearchInterface() {
         )}
       </div>
       
+      {/* Grainy white gradient background extending full width */}
+      <div 
+        className="fixed bottom-0 left-0 right-0 h-96 pointer-events-none"
+        style={{
+          background: `
+            radial-gradient(ellipse 100vw 400px at center bottom, 
+              rgba(255, 255, 255, 0.9) 0%, 
+              rgba(255, 255, 255, 0.85) 20%, 
+              rgba(255, 255, 255, 0.8) 40%, 
+              rgba(255, 255, 255, 0.7) 60%, 
+              transparent 100%
+            ),
+            url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Ccircle cx='7' cy='7' r='1'/%3E%3Ccircle cx='17' cy='17' r='1'/%3E%3Ccircle cx='27' cy='7' r='1'/%3E%3Ccircle cx='37' cy='17' r='1'/%3E%3Ccircle cx='47' cy='7' r='1'/%3E%3Ccircle cx='57' cy='17' r='1'/%3E%3Ccircle cx='7' cy='27' r='1'/%3E%3Ccircle cx='17' cy='37' r='1'/%3E%3Ccircle cx='27' cy='27' r='1'/%3E%3Ccircle cx='37' cy='37' r='1'/%3E%3Ccircle cx='47' cy='27' r='1'/%3E%3Ccircle cx='57' cy='37' r='1'/%3E%3Ccircle cx='7' cy='47' r='1'/%3E%3Ccircle cx='17' cy='57' r='1'/%3E%3Ccircle cx='27' cy='47' r='1'/%3E%3Ccircle cx='37' cy='57' r='1'/%3E%3Ccircle cx='47' cy='47' r='1'/%3E%3Ccircle cx='57' cy='57' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+        }}
+      />
+
       {/* Fixed chat box at bottom */}
-      <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 p-4">
+      <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 p-4 z-10">
         <div className="w-[36rem] max-w-[90vw]">
           {/* Single boundary around text area and icon menus */}
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 shadow-lg">
