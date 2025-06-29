@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface SearchResult {
   title: string;
@@ -113,47 +114,77 @@ export default function SearchInterface() {
         </Card>
       )}
 
-      {aiResponse && (
-        <Card>
-          <CardHeader>
-            <CardTitle>AI Response</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="prose max-w-none">
-              {aiResponse.split('\n').map((paragraph, index) => (
-                <p key={index} className="mb-2">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {searchResults.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold">Sources</h2>
-          {searchResults.map((result, index) => (
-            <Card key={index}>
-              <CardHeader>
-                <CardTitle className="text-lg">
-                  <a
-                    href={result.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                  >
-                    [{index + 1}] {result.title}
-                  </a>
-                </CardTitle>
-                <CardDescription>{result.displayLink}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-700 dark:text-gray-300">{result.snippet}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+      {(aiResponse || searchResults.length > 0) && (
+        <Tabs defaultValue="answer" className="w-full">
+          <TabsList className={`grid w-full ${searchResults.length > 0 ? 'grid-cols-2' : 'grid-cols-1'}`}>
+            <TabsTrigger value="answer">Answer</TabsTrigger>
+            {searchResults.length > 0 && (
+              <TabsTrigger value="sources">Sources</TabsTrigger>
+            )}
+          </TabsList>
+          
+          <TabsContent value="answer" className="mt-4">
+            {aiResponse ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="prose max-w-none">
+                    {aiResponse.split('\n').map((paragraph, index) => (
+                      <p key={index} className="mb-2">
+                        {paragraph}
+                      </p>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : loading ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center text-gray-500">
+                    <div className="flex items-center justify-center space-x-2">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+                      <span>Generating answer...</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-center text-gray-500">
+                    <p>Answer will appear here once generated</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          
+          {searchResults.length > 0 && (
+            <TabsContent value="sources" className="mt-4">
+              <div className="space-y-4">
+                {searchResults.map((result, index) => (
+                  <Card key={index}>
+                    <CardHeader>
+                      <CardTitle className="text-lg">
+                        <a
+                          href={result.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                        >
+                          [{index + 1}] {result.title}
+                        </a>
+                      </CardTitle>
+                      <CardDescription>{result.displayLink}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-700 dark:text-gray-300">{result.snippet}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          )}
+        </Tabs>
       )}
     </div>
   );
