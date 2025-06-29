@@ -20,6 +20,7 @@ interface SearchResponse {
 interface GenerateResponse {
   response: string;
   sources: SearchResult[];
+  relatedQuestions?: string[];
 }
 
 export default function SearchInterface() {
@@ -27,6 +28,7 @@ export default function SearchInterface() {
   const [loading, setLoading] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [aiResponse, setAiResponse] = useState('');
+  const [relatedQuestions, setRelatedQuestions] = useState<string[]>([]);
   const [error, setError] = useState('');
 
   const handleSearch = async () => {
@@ -36,6 +38,7 @@ export default function SearchInterface() {
     setError('');
     setSearchResults([]);
     setAiResponse('');
+    setRelatedQuestions([]);
 
     try {
       // Get search results
@@ -69,6 +72,9 @@ export default function SearchInterface() {
 
       const generateData: GenerateResponse = await generateResponse.json();
       setAiResponse(generateData.response);
+      if (generateData.relatedQuestions) {
+        setRelatedQuestions(generateData.relatedQuestions);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -82,14 +88,66 @@ export default function SearchInterface() {
     }
   };
 
+  const handleRelatedQuestionClick = async (question: string) => {
+    setQuery(question);
+    
+    // Trigger search with the new question
+    setLoading(true);
+    setError('');
+    setSearchResults([]);
+    setAiResponse('');
+    setRelatedQuestions([]);
+
+    try {
+      // Get search results
+      const searchResponse = await fetch('/api/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: question }),
+      });
+
+      if (!searchResponse.ok) {
+        throw new Error('Search failed');
+      }
+
+      const searchData: SearchResponse = await searchResponse.json();
+      setSearchResults(searchData.results);
+
+      // Generate AI response
+      const generateResponse = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ query: question, searchResults: searchData.results }),
+      });
+
+      if (!generateResponse.ok) {
+        throw new Error('Failed to generate response');
+      }
+
+      const generateData: GenerateResponse = await generateResponse.json();
+      setAiResponse(generateData.response);
+      if (generateData.relatedQuestions) {
+        setRelatedQuestions(generateData.relatedQuestions);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <div className="text-center space-y-4">
         <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-          Perplaxity
+          perplaxity
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Ask questions and, uh, ill get back to you
+          ask questions and, uh, ill get back to you
         </p>
       </div>
 
@@ -97,7 +155,7 @@ export default function SearchInterface() {
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyPress}
           placeholder="Ask a question..."
           className="flex-1"
         />
@@ -123,7 +181,7 @@ export default function SearchInterface() {
             )}
           </TabsList>
           
-          <TabsContent value="answer" className="mt-4">
+          <TabsContent value="answer" className="mt-4 space-y-6">
             {aiResponse ? (
               <Card>
                 <CardContent className="pt-6">
@@ -155,6 +213,25 @@ export default function SearchInterface() {
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {relatedQuestions.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Related</h3>
+                <div className="space-y-2">
+                  {relatedQuestions.map((question, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleRelatedQuestionClick(question)}
+                      className="w-full text-left p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="text-gray-900 dark:text-white">
+                        {question}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
             )}
           </TabsContent>
           
