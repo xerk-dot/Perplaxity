@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { Search, X, Lightbulb, Settings, Paperclip, Mic, AudioWaveform } from 'lucide-react';
+import { Search, X, Lightbulb, Settings, Paperclip, Mic, AudioWaveform, FlaskConical } from 'lucide-react';
 
 interface SearchResult {
   title: string;
@@ -32,7 +32,9 @@ export default function SearchInterface() {
   const [error, setError] = useState('');
   const [activeView, setActiveView] = useState<'answer' | 'sources'>('answer');
   const [initialQuestion, setInitialQuestion] = useState('');
-  const hasResults = aiResponse || searchResults.length > 0;
+  const [activeTab, setActiveTab] = useState<'search' | 'research' | 'labs'>('search');
+  const [isAnswerPage, setIsAnswerPage] = useState(false);
+  const hasResults = aiResponse || searchResults.length > 0 || isAnswerPage;
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -42,6 +44,9 @@ export default function SearchInterface() {
       setInitialQuestion(query);
     }
 
+    // Set answer page state to maintain layout during loading
+    setIsAnswerPage(true);
+    
     setLoading(true);
     setError('');
     setSearchResults([]);
@@ -104,7 +109,14 @@ export default function SearchInterface() {
   };
 
   const handleRelatedQuestionClick = async (question: string) => {
-    setQuery(question);
+    // Update the initial question to the new question
+    setInitialQuestion(question);
+    
+    // Clear the follow-up chatbox
+    setQuery('');
+    
+    // Ensure we stay on answer page during loading
+    setIsAnswerPage(true);
     
     // Trigger search with the new question
     setLoading(true);
@@ -177,46 +189,106 @@ export default function SearchInterface() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyPress}
-                placeholder="ask anything and ill try my hardest"
+                placeholder="ask anything you want"
                 className="w-full h-32 py-4 px-6 text-lg bg-transparent border-none focus:ring-0 focus:outline-none resize-none mb-4"
               />
               
               {/* Icon menus below text area */}
               <div className="flex justify-between items-center">
-                {/* Left toggle menu */}
-                <div className="flex space-x-2">
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <Search size={20} className="text-gray-500" />
+                {/* Left tab menu */}
+                <div className="bg-gray-200 dark:bg-gray-600 rounded-lg p-1 flex relative">
+                  
+                  <button 
+                    className={`relative z-10 p-2 rounded-md transition-colors group ${
+                      activeTab === 'search' ? 'text-blue-500' : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                    onClick={() => setActiveTab('search')}
+                    title="Search"
+                  >
+                    <Search size={18} />
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      Search
+                    </div>
                   </button>
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <X size={20} className="text-gray-500" />
+                  
+                  <button 
+                    className={`relative z-10 p-2 rounded-md transition-colors group ${
+                      activeTab === 'research' ? 'text-blue-500' : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                    onClick={() => setActiveTab('research')}
+                    title="Research"
+                  >
+                    <Lightbulb size={18} />
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      Research
+                    </div>
                   </button>
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <Lightbulb size={20} className="text-gray-500" />
+                  
+                  <button 
+                    className={`relative z-10 p-2 rounded-md transition-colors group ${
+                      activeTab === 'labs' ? 'text-blue-500' : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                    onClick={() => setActiveTab('labs')}
+                    title="Labs"
+                  >
+                    <FlaskConical size={18} />
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      Labs
+                    </div>
                   </button>
                 </div>
                 
                 {/* Right toggle menu */}
                 <div className="flex items-center space-x-2">
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <Settings size={18} className="text-gray-500" />
-                    <span className="sr-only">Choose model</span>
+                  <button 
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group relative"
+                    onClick={() => console.log('Choose model clicked')}
+                    title="Choose model"
+                  >
+                    <Settings size={18} className="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      Choose model
+                    </div>
                   </button>
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <Search size={18} className="text-gray-500" />
-                    <span className="sr-only">Set sources</span>
+                  <button 
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group relative"
+                    onClick={() => console.log('Set sources clicked')}
+                    title="Set sources"
+                  >
+                    <Search size={18} className="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      Set sources
+                    </div>
                   </button>
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <Paperclip size={18} className="text-gray-500" />
-                    <span className="sr-only">Attach</span>
+                  <button 
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group relative"
+                    onClick={() => console.log('Attach clicked')}
+                    title="Attach"
+                  >
+                    <Paperclip size={18} className="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      Attach
+                    </div>
                   </button>
-                  <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                    <Mic size={18} className="text-gray-500" />
-                    <span className="sr-only">Dictation</span>
+                  <button 
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group relative"
+                    onClick={() => console.log('Dictation clicked')}
+                    title="Dictation"
+                  >
+                    <Mic size={18} className="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      Dictation
+                    </div>
                   </button>
-                  <button className="bg-blue-500 hover:bg-blue-600 p-2.5 rounded-xl transition-colors shadow-sm">
+                  <button 
+                    className="bg-blue-500 hover:bg-blue-600 p-2.5 rounded-xl transition-colors shadow-sm group relative"
+                    onClick={() => console.log('Voice mode clicked')}
+                    title="Voice mode"
+                  >
                     <AudioWaveform size={18} className="text-white animate-pulse" />
-                    <span className="sr-only">Voice mode</span>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                      Voice mode
+                    </div>
                   </button>
                 </div>
               </div>
@@ -306,7 +378,7 @@ export default function SearchInterface() {
               )}
 
               {relatedQuestions.length > 0 && (
-                <div className="space-y-3">
+                <div className="space-y-3 pb-24">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Related</h3>
                   <div className="space-y-2">
                     {relatedQuestions.map((question, index) => (
@@ -393,40 +465,100 @@ export default function SearchInterface() {
             
             {/* Icon menus below text area */}
             <div className="flex justify-between items-center">
-              {/* Left toggle menu */}
-              <div className="flex space-x-2">
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Search size={20} className="text-gray-500" />
+              {/* Left tab menu */}
+              <div className="bg-gray-200 dark:bg-gray-600 rounded-lg p-1 flex relative">
+                
+                <button 
+                  className={`relative z-10 p-2 rounded-md transition-colors group ${
+                    activeTab === 'search' ? 'text-blue-500' : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                  onClick={() => setActiveTab('search')}
+                  title="Search"
+                >
+                  <Search size={18} />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    Search
+                  </div>
                 </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <X size={20} className="text-gray-500" />
+                
+                <button 
+                  className={`relative z-10 p-2 rounded-md transition-colors group ${
+                    activeTab === 'research' ? 'text-blue-500' : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                  onClick={() => setActiveTab('research')}
+                  title="Research"
+                >
+                  <Lightbulb size={18} />
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    Research
+                  </div>
                 </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Lightbulb size={20} className="text-gray-500" />
+                
+                <button 
+                  className={`relative z-10 p-2 rounded-md transition-colors group ${
+                    activeTab === 'labs' ? 'text-blue-500' : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                  onClick={() => setActiveTab('labs')}
+                  title="Labs"
+                >
+                  <FlaskConical size={18} />
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    Labs
+                  </div>
                 </button>
               </div>
               
               {/* Right toggle menu */}
               <div className="flex items-center space-x-2">
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Settings size={18} className="text-gray-500" />
-                  <span className="sr-only">Choose model</span>
+                <button 
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group relative"
+                  onClick={() => console.log('Choose model clicked')}
+                  title="Choose model"
+                >
+                  <Settings size={18} className="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    Choose model
+                  </div>
                 </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Search size={18} className="text-gray-500" />
-                  <span className="sr-only">Set sources</span>
+                <button 
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group relative"
+                  onClick={() => console.log('Set sources clicked')}
+                  title="Set sources"
+                >
+                  <Search size={18} className="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    Set sources
+                  </div>
                 </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Paperclip size={18} className="text-gray-500" />
-                  <span className="sr-only">Attach</span>
+                <button 
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group relative"
+                  onClick={() => console.log('Attach clicked')}
+                  title="Attach"
+                >
+                  <Paperclip size={18} className="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    Attach
+                  </div>
                 </button>
-                <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <Mic size={18} className="text-gray-500" />
-                  <span className="sr-only">Dictation</span>
+                <button 
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors group relative"
+                  onClick={() => console.log('Dictation clicked')}
+                  title="Dictation"
+                >
+                  <Mic size={18} className="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors" />
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    Dictation
+                  </div>
                 </button>
-                <button className="bg-blue-500 hover:bg-blue-600 p-2.5 rounded-xl transition-colors shadow-sm">
+                <button 
+                  className="bg-blue-500 hover:bg-blue-600 p-2.5 rounded-xl transition-colors shadow-sm group relative"
+                  onClick={() => console.log('Voice mode clicked')}
+                  title="Voice mode"
+                >
                   <AudioWaveform size={18} className="text-white animate-pulse" />
-                  <span className="sr-only">Voice mode</span>
+                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                    Voice mode
+                  </div>
                 </button>
               </div>
             </div>
