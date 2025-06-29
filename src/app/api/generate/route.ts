@@ -85,6 +85,8 @@ Original question: ${query}`;
     const relatedQuestions = relatedQuestionsText
       .split('\n')
       .map(q => q.trim())
+      .map(q => q.replace(/^[-•*]\s*/, '')) // Remove leading dash, bullet, or asterisk
+      .map(q => q.replace(/^\d+\.\s*/, '')) // Remove leading numbers like "1. "
       .filter(q => q.length > 0)
       .slice(0, 5); // Ensure we only get 5 questions
 
